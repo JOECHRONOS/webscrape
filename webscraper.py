@@ -1,4 +1,6 @@
 
+##make a batch before hand so you dont have to key enter every time
+
 
 
 from selenium import webdriver
@@ -13,6 +15,7 @@ driver = webdriver.Chrome()
 
 def get_descriptions_from_page(sku_list):
     descriptions = []
+    
 
     try:
         # Wait until the table rows are present on the first page
@@ -25,20 +28,24 @@ def get_descriptions_from_page(sku_list):
         for row in rows:
             # Look for input elements with data-column="5" (where the description resides)
             input_elements = row.find_elements(By.CSS_SELECTOR, 'input[data-column="5"]')
+            
 
             for input_element in input_elements:
                 
                 description = input_element.get_attribute('value')
                 print(f"Found description: {description}")
 
-                descriptions.append((description, description))
-
+                descriptions.append(description)
+            
+            
 
                 
     except Exception as e:
         print(f"Error scraping page: {e}")
     
     return descriptions
+    
+
 
 
 
@@ -63,7 +70,7 @@ except Exception as e:
     
     
   
-#add the list of skus you want before hand
+#add the list of skus you want before hand and probably save a batch before you run
 sku_list = ["96072", "46232", "96031", "96069", "96016", "96014", "46245", "46235", 
     "96063", "46240", "25712", "29010", "45890", "65608", "65615", "65370", 
     "65984", "65600", "6504", "97043", "97045", "97041", "65748", "65506", 
@@ -99,11 +106,11 @@ while True:
 
     
 
-    
+#make sure you have the file close, or it will not write or save
 with open('sku_descriptions.csv', 'w', newline='') as file:
     writer = csv.writer(file)
-    writer.writerow(["SKU", "Description"])  # sku is useless, too lazy to fix so deal w it 
-    for sku, description in sku_to_description:
+    writer.writerow(["SKU", "Description"])  # sku is useless, too lazy to fix so deal w it (NVM FIXED)
+    for sku, description in zip(sku_list, sku_to_description):
         writer.writerow([sku, description])
 print(f"The CSV file will be saved in: {os.getcwd()}")
 
