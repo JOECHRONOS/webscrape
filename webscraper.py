@@ -1,5 +1,8 @@
 
+
+##IMPORTANT##
 ##make a batch before hand so you dont have to key enter every time
+##make sure that csv file is fully closed before starting 
 
 
 
@@ -19,6 +22,7 @@ def get_descriptions_from_page(sku_list):
 
     try:
         # Wait until the table rows are present on the first page
+        #10 secs, you should already have the batch created
         rows = WebDriverWait(driver, 10).until(
             EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'tr.GridRow'))
         )
@@ -44,11 +48,27 @@ def get_descriptions_from_page(sku_list):
         print(f"Error scraping page: {e}")
     
     return descriptions
+
+def get_price_data(sku_list):
+    prices = []
+
+    rows = WebDriverWait(driver, 10).until(
+         EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'tr.GridRow'))
+    )
+
+    for row in rows:
+        input_elements = row.find_elements(By.CSS_SELECTOR, 'input[data-column="8"]')
+
+        for input_element in input_elements:
+
+            price = input_element.get_attribute('value')
+            print(f'Found price: {price}')
+
+            prices.append(price)
+
+    return prices
+
     
-
-
-
-
 
 
 
@@ -81,6 +101,7 @@ sku_list = ["96072", "46232", "96031", "96069", "96016", "96014", "46245", "4623
     "46484", "46480", "46481"]
 
 sku_to_description = []
+get_price = []
 
 
 
@@ -88,6 +109,8 @@ while True:
     
     current_page_descriptions = get_descriptions_from_page(sku_list)
     sku_to_description.extend(current_page_descriptions)
+    current_page_price = get_price_data(sku_list)
+    get_price.extend(current_page_price)
 
     # load the next table 
     next_page = input("Press 'n' and Enter to continue to the next page, or 'q' to quit: ")
@@ -95,7 +118,7 @@ while True:
     if next_page.lower() == 'n':
         # before you press enter again, make sure the new table loaded
         print("Please manually click the 'Next' button in the browser, then press Enter here...")
-        input()  # Wait for user to press Enter after clicking 'Next'
+        input()  #just press enter again
     elif next_page.lower() == 'q':
         print("Exiting the pagination loop.")
         break
@@ -109,9 +132,9 @@ while True:
 #make sure you have the file close, or it will not write or save
 with open('sku_descriptions.csv', 'w', newline='') as file:
     writer = csv.writer(file)
-    writer.writerow(["SKU", "Description"])  # sku is useless, too lazy to fix so deal w it (NVM FIXED)
-    for sku, description in zip(sku_list, sku_to_description):
-        writer.writerow([sku, description])
+    writer.writerow(["SKU", "Description", "Price"])  # sku is useless, too lazy to fix so deal w it (NVM FIXED)
+    for sku, description, price in zip(sku_list, sku_to_description, get_price):
+        writer.writerow([sku, description, price])
 print(f"The CSV file will be saved in: {os.getcwd()}")
 
 
